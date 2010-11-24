@@ -95,7 +95,7 @@ abstract class Application
     
     if ($params === false)
       {
-        // @todo
+        throw new HttpNotFoundException('No route found for ' . $this->request->getPathInfo());
       }
 
     $controller = $params['controller'];
@@ -115,7 +115,7 @@ abstract class Application
     
     if ($controller === false)
       {
-        // @todo
+        throw new HttpNotFoundException($controller_name . 'controller is not found');
       }
     
     $content = $controller->run($action, $params);
