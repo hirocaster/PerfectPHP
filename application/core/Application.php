@@ -91,17 +91,25 @@ abstract class Application
 
   public function run()
   {
-    $params = $this->router->resolve($this->requirest->getPathInfo());
-    
-    if ($params === false)
+    try
       {
-        throw new HttpNotFoundException('No route found for ' . $this->request->getPathInfo());
-      }
-
-    $controller = $params['controller'];
-    $action = $params['action'];
+        
+        $params = $this->router->resolve($this->requirest->getPathInfo());
     
-    $this->runAction($controller, $action, $params);
+        if ($params === false)
+          {
+            throw new HttpNotFoundException('No route found for ' . $this->request->getPathInfo());
+          }
+
+        $controller = $params['controller'];
+        $action = $params['action'];
+    
+        $this->runAction($controller, $action, $params);
+      }
+    catch (HttpNotFoundException $e)
+      {
+        $this->render404Page($e);
+      }
     
     $this->response->send();
     
@@ -146,6 +154,28 @@ abstract class Application
     
     return new $controller_class($this);
     
+  }
+
+  protected function render404Page($e)
+  {
+    $this->response->setStatusCode(404, 'Not Found');
+    $message = $this->isDebugMode() ? $e->getMessage() : 'Page not found.';
+    $message = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
+    
+    $this->response->setContent(<<<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>404</title>
+</head>
+<body>
+    {$message}
+</body>
+</html>
+EOF
+      );
   }
   
 
